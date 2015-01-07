@@ -51,6 +51,8 @@ private:
     static UART slaveUART;      ///< The controller can forward commands to the slave UART
 #endif
 
+    static UART lcdUART;
+
 public:
     /// Get a reference to the host UART
     /// \return hostUART instance, which should act as a slave to a computer (or motherboard)
@@ -61,6 +63,8 @@ public:
     /// \return slaveUART instance, which should act as a master to one or more slave toolheads.
     static UART& getSlaveUART() { return slaveUART; }
 #endif
+
+    static UART& getLcdUART() { return lcdUART; }
 
 private:
         /// Create an instance of the given UART controller

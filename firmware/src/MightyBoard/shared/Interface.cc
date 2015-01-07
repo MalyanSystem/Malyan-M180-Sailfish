@@ -14,6 +14,7 @@ LiquidCrystalSerial* lcd;
 InterfaceBoard* board;
 
 bool isConnected() {
+	return true;
 	// Avoid repeatedly creating temp objects
 	const Pin InterfaceDetect = INTERFACE_DETECT;
 

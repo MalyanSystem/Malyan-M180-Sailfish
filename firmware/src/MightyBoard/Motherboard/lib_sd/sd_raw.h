@@ -134,6 +134,7 @@ uint8_t sd_raw_read_interval(offset_t offset, uint8_t* buffer, uintptr_t interva
 uint8_t sd_raw_write(offset_t offset, const uint8_t* buffer, uintptr_t length);
 uint8_t sd_raw_write_interval(offset_t offset, uint8_t* buffer, uintptr_t length, sd_raw_write_interval_handler_t callback, void* p);
 uint8_t sd_raw_sync();
+void reset_sd_buff();
 
 uint8_t sd_raw_get_info(struct sd_raw_info* info);
 

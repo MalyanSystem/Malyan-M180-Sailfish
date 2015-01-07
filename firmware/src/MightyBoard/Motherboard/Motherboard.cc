@@ -99,6 +99,7 @@ Motherboard::Motherboard() :
 	    &monitorModeScreen,
 	    &messageScreen,
 	    &finishedPrintMenu),
+        lcdBoard(),
 	platform_thermistor(PLATFORM_PIN, TemperatureTable::table_thermistor),
 	platform_heater(platform_thermistor,platform_element,SAMPLE_INTERVAL_MICROS_THERMISTOR,
 			// NOTE: MBI had the calibration_offset as 0 which then causes
@@ -299,9 +300,38 @@ void Motherboard::reset(bool hard_reset) {
 	UART::getHostUART().enable(true);
 	UART::getHostUART().in.reset();
 
+	UART::getLcdUART().enable(false);
+
+        // Port Register
+        PORTJ |= 1<<PJ0;                        // TXD logic high
+        PORTJ &= ~(1<<PJ1);                     // RXD high impedance
+
+        // Data Direction
+        DDRJ &= ~(1<<PJ1);                      // RXD Input
+        DDRJ |= 1<<PJ0;                         // TXD Output
+
+#define USART_UBBR_VALUE		16	
+	UBRR3L = USART_UBBR_VALUE;
+	UBRR3H = (USART_UBBR_VALUE >> 8);
+
+	//UCSR1A = (1 << U2X1);
+	UCSR3B = (1 << TXEN3) | (1 << RXEN3);
+	UCSR3C = (1 <<UCSZ31) | (1 <<UCSZ30);
+	
+	uint8_t tmp = UCSR3A; // flush buffer / reset status
+
+	/*while (1)
+	{
+		if (UCSR3A & (1<<RXC3))
+		{
+			tmp=UDR3;
+			put(tmp);
+		}
+	}*/
+
 	micros = 0;
 
-	if (hasInterfaceBoard) {
+	if (true) {
 
 		// Make sure our interface board is initialized
 		interfaceBoard.init();
@@ -312,13 +342,17 @@ void Motherboard::reset(bool hard_reset) {
 		splashScreen.hold_on = false;
 		interfaceBoard.pushScreen(&splashScreen);
 
-		if ( hard_reset )
+		/*if ( hard_reset )
 			_delay_ms(3000);
+		*/
 
 		// Finally, set up the interface
 		interface::init(&interfaceBoard, &lcd);
 
 		interface_update_timeout.start(interfaceBoard.getUpdateRate());
+        
+        	lcdBoard.init();
+		//lcd_update_timeout.start(500L * 1000L);
 	}
 
 	// interface LEDs default to full ON
@@ -372,7 +406,7 @@ void Motherboard::reset(bool hard_reset) {
 	buttonWait = false;
 
 	// turn off the active cooling fan
-	setExtra(false);
+	setExtra(0);
 }
 
 /// Get the number of microseconds that have passed since
@@ -567,6 +601,16 @@ void Motherboard::runMotherboardSlice() {
 			interface_updated = true;
 		}
 	}
+    //else
+    {
+        lcdBoard.doInterrupt();
+	/*if (lcd_update_timeout.hasElapsed())
+	{
+		lcdBoard.doUpdate();
+		lcd_update_timeout.start(500L * 1000L);
+		//lcd_updated = true;
+	}*/
+    }
 
 	if ( isUsingPlatform() && platform_timeout.hasElapsed() ) {
 		// manage heating loops for the HBP
@@ -814,10 +858,14 @@ uint8_t blink_overflow_counter = 0;
 
 volatile micros_t m2;
 
+uint8_t pwm_counter,global_extra_pwm;
 /// Timer 5 overflow interrupt
 ISR(TIMER5_COMPA_vect) {
 	// Motherboard::getBoard().UpdateMicros();
 	micros += MICROS_INTERVAL;
+	pwm_counter++;
+	if (global_extra_pwm==pwm_counter) PORTL&=~(1<<5);
+	else if (pwm_counter==0) PORTL|=(1<<5);
 
 	if (blink_overflow_counter++ <= 0xA4)
 		return;
@@ -882,12 +930,20 @@ void Motherboard::setUsingPlatform(bool is_using) {
   using_platform = is_using;
 }
 
-void Motherboard::setExtra(bool on) {
+void Motherboard::setExtra(uint8_t on) {
   	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
 		//setUsingPlatform(false);
 		EXTRA_FET.setDirection(true);
-		EXTRA_FET.setValue(on);
+		//EXTRA_FET.setValue(on);
+
+		if (on==1) global_extra_pwm = 255;
+		else global_extra_pwm = on;
 	}
+}
+
+uint8_t Motherboard::getExtra()
+{
+	return global_extra_pwm;
 }
 
 void BuildPlatformHeatingElement::setHeatingElement(uint8_t value) {

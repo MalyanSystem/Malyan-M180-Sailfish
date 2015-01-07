@@ -24,7 +24,7 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include <avr/io.h>
-
+#include <stdio.h>
 
 // TODO: There should be a better way to enable this flag?
 #if ASSERT_LINE_FIX
@@ -87,6 +87,7 @@ volatile uint8_t loopback_bytes = 0;
     // Use double-speed mode for more accurate baud rate?
     #define UBRR0_VALUE 16 // 115200 baud
     #define UBRR1_VALUE 51 // 38400 baud
+    #define UBRR3_VALUE 16 // 115200 baud
     #define UCSRA_VALUE(uart_) _BV(U2X##uart_)
 
     // Adapted from ancient arduino/wiring rabbit hole
@@ -129,17 +130,32 @@ UCSR##uart_##B &= ~(_BV(RXCIE##uart_) | _BV(TXCIE##uart_)); \
     #endif
 
 #endif
+UART UART::lcdUART(3,RS232);
 
+#define TX_BUFF_SIZE    8
+uint8_t tx_buff[TX_BUFF_SIZE],tx_head,tx_tail;
 
 void UART::init_serial() {
     if(index_ == 0) {
         INIT_SERIAL(0);
     }
 #if HAS_SLAVE_UART
-    else {
+    else if(index_ == 1) {
         INIT_SERIAL(1);
     }
 #endif
+    else if (index_ == 3){
+	// Port Register
+	PORTJ |= 1<<PJ0;			// TXD logic high
+	PORTJ &= ~(1<<PJ1);			// RXD high impedance
+	
+	// Data Direction
+	DDRJ &= ~(1<<PJ1);			// RXD Input
+	DDRJ |= 1<<PJ0;				// TXD Output
+	INIT_SERIAL(3);
+	tx_head=0;
+	tx_tail=0;
+    }
 }
 
 void UART::send_byte(char data) {
@@ -147,10 +163,13 @@ void UART::send_byte(char data) {
         UDR0 = data;
     }
 #if HAS_SLAVE_UART
-    else {
+    else if (index_ == 1) {
         UDR1 = data;
     }
 #endif
+    else if (index_ == 3) {
+	UDR3 = data;
+    }
 }
 
 // Transition to a non-transmitting state. This is only used for RS485 mode.
@@ -198,6 +217,10 @@ void UART::enable(bool enabled) {
                 else { DISABLE_SERIAL_INTERRUPTS(1); }
         }
 #endif
+	else if (index_ == 3) {
+		if (enabled) { ENABLE_SERIAL_INTERRUPTS(3); }
+                else { DISABLE_SERIAL_INTERRUPTS(3); }
+	}
 
         if (mode_ == RS485) {
                 // If this is an RS485 pin, set up the RX and TX enable control lines.
@@ -293,4 +316,39 @@ void UART::reset() {
         }
     #endif
 
+	/*ISR(USART3_RX_vect)
+        {
+                static uint8_t byte_in;
+
+                byte_in = UDR3;
+        }
+
+        ISR(USART3_TX_vect)
+        {
+                UDR3 = UART::getLcdUART().out.getNextByteToSend();
+        }*/
+
 #endif
+
+void put(char c) 
+{
+   while (!(UCSR3A & (1<<UDRE3))) {};
+   UDR3 = c; 
+}
+/*
+ISR(USART3_UDRE_vect)
+{
+	UDR3 = tx_buff[tx_head];
+	if (++tx_head >= TX_BUFF_SIZE) tx_head=0;
+	if (tx_head==tx_tail) UCSR0B &= ~(1 << UDRIE0);
+}
+
+void put(char c)
+{
+	while ((tx_tail+1)&0x7==tx_head);
+	tx_buff[tx_tail]=c;
+	if (++tx_tail >= TX_BUFF_SIZE) tx_tail=0;
+	UCSR0B |= (1 << UDRIE0);
+}
+*/
+

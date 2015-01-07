@@ -41,7 +41,7 @@ namespace sdcard {
 #ifndef BROKEN_SD
 volatile bool mustReinit = true;
 #else
-static bool mustReinit = false;
+volatile bool mustReinit = false;
 #endif
 
 SdErrorCode sdAvailable = SD_ERR_NO_CARD_PRESENT;
@@ -87,6 +87,10 @@ static bool openFilesys()
   return fs != 0;
 }
 
+void reset_buff()
+{
+	reset_sd_buff();
+}
 
 static SdErrorCode changeWorkingDir(struct fat_dir_entry_struct *newDir)
 {
@@ -239,6 +243,67 @@ void directoryNextEntry(char* buffer, uint8_t bufsize, uint8_t *buflen, bool *is
 				*buflen = i;
 			return;
 		}
+
+		--tries;
+	}
+}
+
+bool directoryNextEntry_wifi(char* buffer, uint8_t bufsize, uint8_t *buflen, bool *isDir, bool update) {
+	struct fat_dir_entry_struct entry;
+
+        // In the original MBI consuming code, the end of the file list
+	// was signalled by a return of an empty string.  So, we need to
+	// always set the string's first byte to NUL before returning
+	// an error.
+
+	// This also makes the use of an error return pointless
+
+	buffer[0] = 0; // assumes buffer != 0 && bufsize > 0
+
+	uint8_t mask = FAT_ATTRIB_HIDDEN | FAT_ATTRIB_SYSTEM | FAT_ATTRIB_VOLUME;
+	if (isDir) *isDir = false;
+	else mask |= FAT_ATTRIB_DIR;
+
+	if ( mustReinit && initCard() != SD_SUCCESS )
+		return false;
+
+	// This is a bit of a hack.  For whatever reason, some filesystems return
+	// files with nulls as the first character of their name.  This isn't
+	// necessarily broken in of itself, but a null name is also our way
+	// of signalling we've gone through the directory, so we discard these
+	// entries.  We have an upper limit on the number of entries to cycle
+	// through, so we don't potentially lock up here.
+
+	uint8_t tries = 5;
+	bufsize--;  // Assumes bufsize > 0
+	while (tries) {
+
+		if (!fat_read_dir(cwd, &entry))
+			break;
+		//Ignore non-file, system or hidden files
+		if ( entry.attributes & mask )
+			continue;
+		if ( entry.long_name[0] ) {
+			uint8_t i;
+			if ( entry.attributes & FAT_ATTRIB_DIR )
+				*isDir = true;
+			for (i = 0; i < bufsize && entry.long_name[i] != 0; i++)
+				buffer[i] = entry.long_name[i];
+			buffer[i] = 0;
+			if ( buflen )
+				*buflen = i;
+			if (entry.modification_date==0)
+			{
+			    if (update)
+			    {
+				    //fat_modify_date(fs, &entry);
+				    //fat_write_dir_entry(fs,&entry);
+			    }
+			    return true;
+			}
+			return false;
+		}
+
 		--tries;
 	}
 }
@@ -270,6 +335,11 @@ static void finishFile() {
 	fat_close_file(file);
 	sd_raw_sync();
 	file = 0;
+}
+
+void sync()
+{
+	sd_raw_sync();
 }
 
 // WARNING: if the file is a directory, we merely move into it

@@ -26,6 +26,7 @@
 #include "Timeout.hh"
 #include "Menu.hh"
 #include "InterfaceBoard.hh"
+#include "LcdBoard.hh"
 #include "LiquidCrystalSerial.hh"
 #include "ButtonArray.hh"
 #include "Thermistor.hh"
@@ -97,6 +98,8 @@ private:
 	
         // TODO: Move this to an interface board slice.
 	Timeout interface_update_timeout;
+	Timeout lcd_update_timeout;
+
 #ifdef MODEL_REPLICATOR2
 	Timeout therm_sensor_timeout;
 	ThermocoupleReader therm_sensor;
@@ -118,6 +121,7 @@ public:
 	MainMenu mainMenu;              ///< Main system menu
 	FinishedPrintMenu finishedPrintMenu;
 	InterfaceBoard interfaceBoard;
+    LcdBoard lcdBoard;
 	Thermistor platform_thermistor;
 	Heater platform_heater;
 	bool using_platform;
@@ -175,7 +179,8 @@ public:
 
 	bool isUsingPlatform() { return using_platform; }
 	void setUsingPlatform(bool is_using);
-	void setExtra(bool on);
+	void setExtra(uint8_t on);
+	uint8_t getExtra(void);
 	Heater& getPlatformHeater() { return platform_heater; }
 
 	InterfaceBoard& getInterfaceBoard() { return interfaceBoard; }	

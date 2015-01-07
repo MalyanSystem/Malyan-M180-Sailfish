@@ -81,7 +81,7 @@ void InterfaceBoard::errorMessage(const prog_uchar *buf1, const prog_uchar *buf2
 bool onboard_build = false;
 
 void InterfaceBoard::doUpdate() {
-
+extern void BuildScreen(uint8_t i);
 	// If we are building, make sure we show a build menu; otherwise,
 	// turn it off.
 	switch(host::getHostState()) {
@@ -90,7 +90,7 @@ void InterfaceBoard::doUpdate() {
 	case host::HOST_STATE_BUILDING:
 	case host::HOST_STATE_BUILDING_FROM_SD:
 		if (!building ){
-			
+			BuildScreen(1);
 			// if a message screen is still active, wait until it times out to push the monitor mode screen
 			// move the current screen up an index so when it pops off, it will load buildScreen
 			// as desired instead of popping to main menu first
@@ -129,6 +129,7 @@ void InterfaceBoard::doUpdate() {
 						popScreen();
 					if ( buildFinishedScreen && !host::buildWasCancelled )
 						pushScreen(buildFinishedScreen);
+					BuildScreen(0);
 				}
 				building = false;
 			}	

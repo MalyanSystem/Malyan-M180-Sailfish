@@ -12,11 +12,12 @@ void ButtonArray::init() {
 	ButtonDelay = SlowDelay;
 
         // Set all of the known buttons to inputs (see above note)
-        DDRJ = DDRJ & 0xE0;
-        PORTJ = PORTJ & 0xE0;
+//        DDRJ = DDRJ & 0xE0;
+//        PORTJ = PORTJ & 0xE0;
 }
 
 void ButtonArray::scanButtons() {
+return;
         // Don't bother scanning if we already have a button 
         // or if sufficient time has not elapsed between the last button push
         if (buttonPressWaiting || (buttonTimeout.isActive() && !buttonTimeout.hasElapsed()))
@@ -47,7 +48,7 @@ void ButtonArray::scanButtons() {
 bool ButtonArray::getButton(ButtonName& button) {
         bool buttonValid;
         uint8_t buttonNumber;
-
+return false;
         ATOMIC_BLOCK(ATOMIC_FORCEON)
         {
                 buttonValid =  buttonPressWaiting;
@@ -70,7 +71,7 @@ void ButtonArray::clearButtonPress(){
 //Returns true is button is depressed
 bool ButtonArray::isButtonPressed(ButtonArray::ButtonName button) {
         uint8_t newJ = PINJ;// & 0xFE;
-
+return true;
 	//Buttons are active low
 	if ( newJ & (1<<button) ) return false;
 

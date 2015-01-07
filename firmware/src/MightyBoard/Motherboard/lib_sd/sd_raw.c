@@ -172,6 +172,11 @@ static void sd_raw_send_byte(uint8_t b);
 static uint8_t sd_raw_rec_byte();
 static uint8_t sd_raw_send_command(uint8_t command, uint32_t arg);
 
+void reset_sd_buff()
+{
+	raw_block_address = (offset_t)-1;
+}
+
 /**
  * \ingroup sd_raw
  * Initializes memory card communication.
@@ -458,6 +463,7 @@ uint8_t sd_raw_available()
  */
 uint8_t sd_raw_locked()
 {
+    return 0;
     return get_pin_locked() == 0x00;
 }
 
@@ -868,7 +874,7 @@ uint8_t sd_raw_write(offset_t offset, const uint8_t* buffer, uintptr_t length)
         if(block_address != raw_block_address)
         {
 #if SD_RAW_WRITE_BUFFERING
-            if(!sd_raw_sync())
+    		if(!sd_raw_sync())
 		// sd_raw_sync() calls us back...
                 return 0;
 #endif

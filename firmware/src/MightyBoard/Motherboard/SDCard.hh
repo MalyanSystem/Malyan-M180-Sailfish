@@ -68,6 +68,8 @@ namespace sdcard {
     void directoryNextEntry(char* buffer, uint8_t bufsize,
 			    uint8_t* fileLength = 0, bool *isDir = 0);
 
+    bool directoryNextEntry_wifi(char* buffer, uint8_t bufsize,
+		                            uint8_t* fileLength = 0, bool *isDir = 0, bool update=0);
 
     /// Begin capturing bufffered commands to a new file with the given filename.
     /// Returns an SD card error/success code.
@@ -131,6 +133,8 @@ namespace sdcard {
     /// Change our current working directory to the specified directory
     bool changeDirectory(const char *name);
 
+    void sync();
+    void reset_buff();
 } // namespace sdcard
 
 #endif // SDCARD_HH_

@@ -89,12 +89,13 @@ struct fat_dir_entry_struct
     char long_name[32];
     /** The file's attributes. Mask of the FAT_ATTRIB_* constants. */
     uint8_t attributes;
-#if FAT_DATETIME_SUPPORT
+//yongzong
+//#if FAT_DATETIME_SUPPORT
     /** Compressed representation of modification time. */
     uint16_t modification_time;
     /** Compressed representation of modification date. */
     uint16_t modification_date;
-#endif
+//#endif
     /** The cluster in which the file's first byte resides. */
     cluster_t cluster;
     /** The file's size. */
@@ -131,6 +132,9 @@ uint8_t fat_get_dir_entry_of_path(struct fat_fs_struct* fs, const char* path, st
 offset_t fat_get_fs_size(const struct fat_fs_struct* fs);
 offset_t fat_get_fs_free(const struct fat_fs_struct* fs);
 offset_t fat_get_file_size(const struct fat_file_struct* fd);
+
+uint8_t fat_modify_date(const struct fat_fs_struct* fs, struct fat_dir_entry_struct* dir_entry);
+uint8_t fat_write_dir_entry(const struct fat_fs_struct* fs, struct fat_dir_entry_struct* dir_entry);
 
 /**
  * @}

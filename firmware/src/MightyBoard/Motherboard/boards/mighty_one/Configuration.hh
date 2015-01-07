@@ -27,6 +27,7 @@
 #define STEPPER_COUNT   5
 #define MAX_STEPPERS    5
 #define EXTRUDERS       2
+#define NOZZLE_CALIBRATE_SCRIPT	1
 
 // microstepping is 1 / (1 << MICROSTEPPING)
 //  0 for 1/1
@@ -61,7 +62,7 @@
 //  SCK    |   CLK
 
 // Define as 1 if and SD card slot is present; 0 if not.
-#define HAS_SD          0
+#define HAS_SD          1
 // The pin that connects to the write protect line on the SD header.
 #define SD_WRITE_PIN    Pin(PortH,5)
 // The pin that connects to the card detect line on the SD header.
@@ -80,6 +81,7 @@
 
 // --- Host UART configuration ---
 // The host UART is presumed to always be present on the RX/TX lines.
+extern void put(char c);
 
 // --- Piezo Buzzer configuration ---
 // Define as 1 if the piezo buzzer is present, 0 if not.
@@ -137,12 +139,12 @@
 // Z stepper potentiometer pin
 #define Z_POT_PIN	Pin(PortK,3)
 // A stepper potentiometer pin
-#define A_POT_PIN	Pin(PortA,5)
+#define A_POT_PIN       Pin(PortJ,6)
 // B stepper potentiometer pin
 #define B_POT_PIN       Pin(PortJ,6)
 
 // i2c pots SCL pin
-#define POTS_SCL        Pin(PortJ,5)
+#define POTS_SCL        Pin(PortA,5)
 // default value for pots (0-127 valid)
 #define POTS_DEFAULT_VAL 50
 
@@ -247,7 +249,7 @@
 
 //If defined, enable an additional Utilities menu that allows erasing, saving and loading
 //of eeprom data
-#define EEPROM_MENU_ENABLE
+//#define EEPROM_MENU_ENABLE
 
 //If defined, the planner is constrained to a pipeline size of 1,
 //this means that acceleration still happens, but only on a per block basis,
@@ -355,7 +357,7 @@
 //a few steps around where it should be.
 //If the value isn't defined, the axis is moved
 
-#define BUILD_CLEAR_MARGIN 5.0 // 5.0 mm
+#define BUILD_CLEAR_MARGIN 20.0 // 5.0 mm
 // ***** WARNING ***** Math for _X and _Y assumes X and Y home offsets are positive....
 #define BUILD_CLEAR_X ( (int32_t)eeprom::getEeprom32(eeprom_offsets::AXIS_HOME_POSITIONS_STEPS + X_AXIS * sizeof(uint32_t), stepperAxis[X_AXIS].max_axis_steps_limit) - (int32_t)(BUILD_CLEAR_MARGIN * stepperAxisStepsPerMM(X_AXIS)) )
 #define BUILD_CLEAR_Y ( (int32_t)eeprom::getEeprom32(eeprom_offsets::AXIS_HOME_POSITIONS_STEPS + Y_AXIS * sizeof(uint32_t), stepperAxis[Y_AXIS].max_axis_steps_limit) - (int32_t)(BUILD_CLEAR_MARGIN * stepperAxisStepsPerMM(Y_AXIS)) )
@@ -378,12 +380,13 @@
 
 // When defined, acceleration stats are displayed on the LCD screen
 //#define ACCEL_STATS
+#define BUILD_STATS
 
 // Disabled SD card folder support owing to a broken SD card detect switch
 //#define BROKEN_SD
 
 // Build with nozzle calibration S3G script and help screen to run it
-//#define NOZZLE_CALIBRATION_SCRIPT
+#define NOZZLE_CALIBRATION_SCRIPT
 
 // Single extruder builds have space for SDHC & FAT-32 support
 #if defined(SINGLE_EXTRUDER) || !defined(NOZZLE_CALIBRATION_SCRIPT) || defined(__AVR_ATmega2560__)

@@ -281,11 +281,7 @@ bool isRunning() {
 
 void loadToleranceOffsets() {
 
-#ifdef MODEL_REPLICATOR2
-#define TOOLHEAD_OFFSET_X 35.0
-#else
-#define TOOLHEAD_OFFSET_X 33.0
-#endif
+#define TOOLHEAD_OFFSET_X 34.2
 
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
 		// Force all toolhead offsets to 0
@@ -300,6 +296,27 @@ void loadToleranceOffsets() {
 			tolerance_offset_T1[i] = 0;
 		}
 	}
+
+	// The X Toolhead offset in units of stepps
+	int32_t xToolheadOffset = (int32_t)(eeprom::getEeprom32(eeprom_offsets::TOOLHEAD_OFFSET_SETTINGS + 0, 0));
+	int32_t yToolheadOffset = (int32_t)(eeprom::getEeprom32(eeprom_offsets::TOOLHEAD_OFFSET_SETTINGS + 4, 0));
+
+	xToolheadOffset = (int32_t)stepperAxisMMToSteps(TOOLHEAD_OFFSET_X, 0) - xToolheadOffset;
+	yToolheadOffset = -yToolheadOffset;
+
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+		// In the RepG 40 and later system
+		//
+		//    T0[i] = 0
+		//    T1[i] = offset[i]
+		//
+		// The offset is the full offset, not the deviation from the offset
+		tolerance_offset_T1[0] = xToolheadOffset;
+		tolerance_offset_T1[1] = yToolheadOffset;
+	}
+
+	return;
+
 
 #ifndef SIMULATOR
 	// get toolhead offsets for dual extruder units

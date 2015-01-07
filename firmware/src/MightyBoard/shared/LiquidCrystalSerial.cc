@@ -479,8 +479,7 @@ char* LiquidCrystalSerial::writeLine(char* message) {
 	while (*letter != 0 && *letter != '\n') {
 		//INTERFACE_RLED.setValue(true);
 		write(*letter);
-		letter++;
-		
+		letter++;		
 	}
 	return letter;
 }
@@ -563,3 +562,4 @@ void LiquidCrystalSerial::writeSerial(uint8_t value) {
     _strobe_pin.setValue(false);
      
 }
+

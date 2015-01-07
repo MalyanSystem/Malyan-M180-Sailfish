@@ -225,7 +225,7 @@ static uint8_t fat_terminate_clusters(struct fat_fs_struct* fs, cluster_t cluste
 static uint8_t fat_clear_cluster(const struct fat_fs_struct* fs, cluster_t cluster_num);
 static uintptr_t fat_clear_cluster_callback(uint8_t* buffer, offset_t offset, void* p);
 static offset_t fat_find_offset_for_dir_entry(struct fat_fs_struct* fs, const struct fat_dir_struct* parent, const struct fat_dir_entry_struct* dir_entry);
-static uint8_t fat_write_dir_entry(const struct fat_fs_struct* fs, struct fat_dir_entry_struct* dir_entry);
+//static uint8_t fat_write_dir_entry(const struct fat_fs_struct* fs, struct fat_dir_entry_struct* dir_entry);
 #if FAT_DATETIME_SUPPORT
 static void fat_set_file_modification_date(struct fat_dir_entry_struct* dir_entry, uint16_t year, uint8_t month, uint8_t day);
 static void fat_set_file_modification_time(struct fat_dir_entry_struct* dir_entry, uint8_t hour, uint8_t min, uint8_t sec);
@@ -1788,10 +1788,11 @@ uint8_t fat_dir_entry_read_callback(uint8_t* buffer, offset_t offset, void* p)
 #endif
         dir_entry->file_size = ltoh32(*((uint32_t*) &buffer[28]));
 
-#if FAT_DATETIME_SUPPORT
-        dir_entry->modification_time = ltoh16(*((uint16_t*) &buffer[22]));
+	//yongzong
+//#if FAT_DATETIME_SUPPORT
+        //dir_entry->modification_time = ltoh16(*((uint16_t*) &buffer[22]));
         dir_entry->modification_date = ltoh16(*((uint16_t*) &buffer[24]));
-#endif
+//#endif
 
         arg->finished = 1;
         return 0;
@@ -1935,6 +1936,38 @@ offset_t fat_find_offset_for_dir_entry(struct fat_fs_struct* fs, const struct fa
     return dir_entry_offset;
 }
 #endif
+
+uint8_t fat_modify_date(const struct fat_fs_struct* fs, struct fat_dir_entry_struct* dir_entry)
+{
+    if(!fs || !dir_entry)
+        return 0;
+
+    device_write_t device_write = fs->partition->device_write;
+    device_read_t device_read = fs->partition->device_read;
+    offset_t offset = dir_entry->entry_offset;
+#if FAT_LFN_SUPPORT
+    uint8_t lfn_entry_count;
+#endif
+
+    const uint8_t buffer[2] = {0x21,0x21};
+
+    /*dir_entry->modification_date = 1000;
+    *((uint16_t*) &buffer[0]) = htol16(dir_entry->modification_date);*/
+
+#if FAT_LFN_SUPPORT
+    uint8_t read_buff[12];
+    device_read(offset,read_buff,12);
+    if (read_buff[11]==0xF) lfn_entry_count=read_buff[0]&0x1F;
+    else lfn_entry_count=0;
+
+    if(!device_write(offset + 0x18 + (uint16_t) lfn_entry_count * 32, buffer, 2))
+#else
+    if(!device_write(offset + 0x18, buffer, 2))
+#endif
+    /* write to disk */
+    	return 0;
+    return 1;
+}
 
 #if DOXYGEN || FAT_WRITE_SUPPORT
 /**
