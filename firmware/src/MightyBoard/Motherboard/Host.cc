@@ -682,7 +682,7 @@ char* getMachineName() {
 #else
 	const static PROGMEM prog_uchar defaultMachineName[] = "Replicat0r 1";
 #endif*/
-	const static PROGMEM prog_uchar defaultMachineName[] = "Malyan Sys 1";
+	const static PROGMEM prog_uchar defaultMachineName[] = "3D Printer";
 
 	if (machineName[0] == 0) {
 	        for(uint8_t i = 0; i < 12; i++) {

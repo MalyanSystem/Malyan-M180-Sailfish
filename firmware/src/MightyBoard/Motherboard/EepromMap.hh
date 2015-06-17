@@ -82,7 +82,7 @@ namespace replicator_axis_lengths{
 	// Each one is the length(in mm's) * steps_per_mm  (from the xml file and the result is rounded down)
 #ifdef MODEL_REPLICATOR
     // Replicator 1
-    const static uint32_t axis_lengths[5] = {230L, 150L, 180L, 100000L, 100000L};	//yongzong: M180
+    const static uint32_t axis_lengths[5] = {230L, 150L, 165L, 100000L, 100000L};	//yongzong: M180
 //    const static uint32_t axis_lengths[5] = {300L, 280L, 250L, 100000L, 100000L};	//yongzong: M300
 #else
 #ifdef SINGLE_EXTRUDER

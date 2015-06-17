@@ -190,7 +190,7 @@ void LcdBoard::process()
 {
     switch (buff_obj[0]) {
         case 'V':
-            writeString((char *)"{VER:007}");
+            writeString((char *)"{VER:008}");
             return;
         case 'S':
             if (buff_value[0]=='E') writeString((char *)"{SYS:echo}");

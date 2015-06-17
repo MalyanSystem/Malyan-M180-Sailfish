@@ -49,6 +49,7 @@ private:
         Heater& heater;  ///<  Heater module to read the current temperature from.
         uint16_t eeprom_base;   ///< Base address to read EEPROM configuration from
         Pin Fan_Pin;
+	Pin Fan_salve;
 
         bool enabled;   ///< If true, the control circuit actively controls the fan.
         int setPoint;   ///< Setpoint temperature, in degrees Celcius.
@@ -58,13 +59,13 @@ private:
         int highSetPoint;
         
         bool fan_on;		///< state record for fan hysteresis
-
+	uint8_t slave_id;
 public:
         /// Create a new cooling fan controller instance.
         /// \param[in] heater Heater to use as an input to the controller
         /// \param[in] eeprom_base_in EEPROM address where the fan settings are stored.
-        CoolingFan(Heater& heater,
-                   const uint16_t eeprom_base_in, const Pin &fan);
+        CoolingFan(const uint8_t id, Heater& heater,
+                   const uint16_t eeprom_base_in, const Pin &fan, const Pin &fan2);
 
         /// Temporarily override the setpoint temperature with a new one.
         /// The saved valued will be restored when the fan is reset.

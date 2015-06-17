@@ -65,7 +65,7 @@
 
 namespace steppers {
 
-uint8_t alterSpeed = 0x00;
+uint8_t alterSpeed = 0x80;
 FPTYPE speedFactor = KCONSTANT_1;
 
 #ifndef SIMULATOR
@@ -543,7 +543,7 @@ void reset() {
 	plannerMaxBufferSize = BLOCK_BUFFER_SIZE - 1;
 #endif
 
-	alterSpeed  = 0x00;
+	alterSpeed  = 0x80;
 	speedFactor = KCONSTANT_1;
 
 	plan_init(advanceK, advanceK2, holdZ);		//Initialize planner
@@ -578,6 +578,9 @@ void abort() {
 
 	setSegmentAccelState(acceleration);
 	deprimeEnable(true);
+
+	alterSpeed  = 0x80;
+	speedFactor = KCONSTANT_1;
 }
 
 Point removeOffsets(const Point &position) {

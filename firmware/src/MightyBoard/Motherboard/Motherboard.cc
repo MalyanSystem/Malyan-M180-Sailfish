@@ -110,8 +110,8 @@ Motherboard::Motherboard() :
 	Extruder_One(0, EXA_PWR, EXA_FAN, ThermocoupleReader::CHANNEL_ONE, eeprom_offsets::T0_DATA_BASE),
 	Extruder_Two(1, EXB_PWR, EXB_FAN, ThermocoupleReader::CHANNEL_TWO, eeprom_offsets::T1_DATA_BASE)
 #else
-	Extruder_One(0, EX1_PWR, EX1_FAN, THERMOCOUPLE_CS1,eeprom_offsets::T0_DATA_BASE),
-	Extruder_Two(1, EX2_PWR, EX2_FAN, THERMOCOUPLE_CS2,eeprom_offsets::T1_DATA_BASE)
+	Extruder_One(0, EX1_PWR, EX1_FAN, EX2_FAN, THERMOCOUPLE_CS1,eeprom_offsets::T0_DATA_BASE),
+	Extruder_Two(1, EX2_PWR, EX2_FAN, EX1_FAN, THERMOCOUPLE_CS2,eeprom_offsets::T1_DATA_BASE)
 #endif
 #ifdef PSTOP_SUPPORT
 	, pstop_enabled(0)

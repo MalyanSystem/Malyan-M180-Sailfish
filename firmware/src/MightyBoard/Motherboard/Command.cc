@@ -468,7 +468,7 @@ void platformAccess(bool clearPlatform) {
 			     FPTOI16(stepperAxis[Z_AXIS].max_feedrate << 6));
 
    // Restore use of speed control
-   steppers::alterSpeed = as;
+   steppers::alterSpeed = 0x80;
 }
 
 //Adds the filament used during this build for a particular extruder

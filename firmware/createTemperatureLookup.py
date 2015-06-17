@@ -64,7 +64,7 @@ def main(argv):
 	beta = 3947;
 	r1 = 680;
 	r2 = 1600;
-	num_temps = int(20);
+	num_temps = int(100);
 	max_adc = int(1023);
 	
 	try:

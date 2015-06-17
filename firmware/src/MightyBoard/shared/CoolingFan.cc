@@ -9,17 +9,20 @@
 #define FAN_ENABLED 1
 #define FAN_DISABLED 0
 
-
+static char en;
 
 // TODO: Come up with a unified strategy for these.
 // EEPROM map
 
 
-CoolingFan::CoolingFan(Heater& heater_in, uint16_t eeprom_base_in, const Pin &fan) :
+CoolingFan::CoolingFan(uint8_t id, Heater& heater_in, uint16_t eeprom_base_in, const Pin &fan, const Pin &fan2) :
+	slave_id(id),
         heater(heater_in),
         eeprom_base(eeprom_base_in),
-        Fan_Pin(fan)
+        Fan_Pin(fan),
+	Fan_salve(fan2)
 {
+	en = 0;
 	reset();
 }
 
@@ -88,6 +91,9 @@ void CoolingFan::manageCoolingFan() {
 }
 
 void CoolingFan::enableFan() {
+	if (slave_id==1) en|=1;
+	else en|=2;
+	Fan_salve.setValue(true);
 //#ifdef IS_EXTRUDER_BOARD
 	Fan_Pin.setValue(true);
 //#else
@@ -96,9 +102,16 @@ void CoolingFan::enableFan() {
 }
 
 void CoolingFan::disableFan() {
+	if (slave_id==1) en&=2;
+	else en&=1;
 //#ifdef IS_EXTRUDER_BOARD
 //#warning cooling fan feature disabled
-	Fan_Pin.setValue(false);
+	if (en==0)
+	{
+		Fan_Pin.setValue(false);
+		Fan_salve.setValue(false);
+	}
+
 //#else
 //	#warning cooling fan feature disabled
 //#endif
